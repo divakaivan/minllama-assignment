@@ -50,11 +50,9 @@ def apply_rotary_emb(
 
     _, seqlen, _, _ = query.shape
     device = query.device
-    # todo
-    #
     # Please refer to slide 22 in https://phontron.com/class/anlp2024/assets/slides/anlp-05-transformers.pdf
     # and Section 3 in https://arxiv.org/abs/2104.09864.
-
+    
     # reshape xq and xk to match the complex representation
     query_real, query_imag = query.float().reshape(query.shape[:-1] + (-1, 2)).unbind(-1)
     key_real, key_imag = key.float().reshape(key.shape[:-1] + (-1, 2)).unbind(-1)
@@ -63,13 +61,29 @@ def apply_rotary_emb(
 
     # First, compute the trigonometric values in the second and fourth columns in
     # slide 22 (linked above).
+    # thank you https://github.com/lucidrains/rotary-embedding-torch/blob/main/rotary_embedding_torch/rotary_embedding_torch.py
+    # for the freqs ㅜㅜ
+    freqs = 1. / (theta ** (torch.arange(0, head_dim, 2)[:(head_dim // 2)].float() / head_dim)) # (2)
+    pos = torch.arange(seqlen, device=device).float()[:max_seq_len] # (2)
+    
+    # turn freqs to be put in reshape_for_broadcast -> freqs.shape == (query_real.shape[1], query_real.shape[-1])
+    freqs = torch.outer(freqs, pos).transpose(-2, -1).float()  # (2, 2)
+    # query_real.shape (1, 2, 2, 2)
+    freqs = reshape_for_broadcast(freqs, query_real) # becomes -> (1, 2, 1, 2)
+    # slide 22 from ppt
+    query_rotated_real = query_real * freqs.cos() - query_imag * freqs.sin()
+    query_rotated_imag = query_real * freqs.sin() + query_imag * freqs.cos()
+    key_rotated_real = key_real * freqs.cos() - key_imag * freqs.sin()
+    key_rotated_imag = key_real * freqs.sin() + key_imag * freqs.cos()
 
     # Then, combine these trigonometric values with the tensors query_real, query_imag,
     # key_real, and key_imag.
+    # both (1, 2, 2, 2, 2)
+    query_stack = torch.stack((query_rotated_real, query_rotated_imag), dim=-1)
+    key_stack = torch.stack((key_rotated_real, key_rotated_imag), dim=-1)
 
-    raise NotImplementedError
-
-    query_out = None
-    key_out = None
+    # turn to original shape -> both (1, 2, 2, 4)
+    query_out = query_stack.reshape(query.shape)
+    key_out = key_stack.reshape(key.shape)
     # Return the rotary position embeddings for the query and key tensors
     return query_out, key_out
