@@ -37,6 +37,7 @@ Zero-Shot Prompting for SST:
 Prompting for SST:
 Dev Accuracy: 0.213 (0.000)
 Test Accuracy: 0.224 (0.000)
+**My results: dev acc: 0.213; test acc: 0.224**
 
 Zero-Shot Prompting for CFIMDB:
 
@@ -45,6 +46,7 @@ Zero-Shot Prompting for CFIMDB:
 Prompting for CFIMDB:
 Dev Accuracy: 0.498 (0.000)
 Test Accuracy: -
+**My results: dev acc: 0.502; test acc: 0.213**
 
 *Classification Finetuning*
 
@@ -53,12 +55,14 @@ Test Accuracy: -
 Finetuning for SST:
 Dev Accuracy: 0.414 (0.014)
 Test Accuracy: 0.418 (0.017)
+**My results: dev acc: 0.425; test acc: 0.445**
 
 `python run_llama.py --option finetune --epochs 5 --lr 2e-5 --batch_size 10  --train data/cfimdb-train.txt --dev data/cfimdb-dev.txt --test data/cfimdb-test.txt --label-names data/cfimdb-label-mapping.json --dev_out cfimdb-dev-finetuning-output.txt --test_out cfimdb-test-finetuning-output.txt [--use_gpu]`
 
 Finetuning for CFIMDB:
 Dev Accuracy: 0.800 (0.115)
 Test Accuracy: -
+**My results: dev acc: 0.865; test acc: 0.457**
 
 Mean reference accuracies over 10 random seeds with their standard deviation shown in brackets.
 
