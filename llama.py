@@ -43,11 +43,8 @@ class RMSNorm(torch.nn.Module):
         Returns:
             torch.Tensor: The normalized tensor.
         """
-        # 
-        # a = x * torch.rsqrt(x.pow(2).mean(-1, keepdim = True) + self.eps)
         rms_x = torch.sqrt(x.pow(2).mean(-1, keepdim = True) + self.eps)
         norm_x = x / rms_x
-        # print(a==norm_x)
         return norm_x
 
 
